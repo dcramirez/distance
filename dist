@@ -1,0 +1,171 @@
+// -----------------------------------------
+// Function and Variable with Photoresistors
+// -----------------------------------------
+// In this example, we're going to register a Particle.variable() with the cloud so that we can read brightness levels from the photoresistor.
+// We'll also register a Particle.function so that we can turn the LED on and off remotely.
+
+// We're going to start by declaring which pins everything is plugged into.
+int light[7];
+
+//int pinA0 = A0; // This is the other end of your photoresistor. The other side is plugged into the "photoresistor" pin (above).
+//int pinA1 = A1; // This is the other end of your photoresistor. The other side is plugged into the "photoresistor" pin (above).
+//int pinA2 = A2; // This is the other end of your photoresistor. The other side is plugged into the "photoresistor" pin (above).
+//int pinA3 = A3; // This is the other end of your photoresistor. The other side is plugged into the "photoresistor" pin (above).
+//int pinA4 = A4; // This is the other end of your photoresistor. The other side is plugged into the "photoresistor" pin (above).
+//int pinA5 = A5; // This is the other end of your photoresistor. The other side is plugged into the "photoresistor" pin (above).
+//int pinA6 = A6; // This is the other end of your photoresistor. The other side is plugged into the "photoresistor" pin (above).
+//int pinA7 = A7; // This is the other end of your photoresistor. The other side is plugged into the "photoresistor" pin (above).
+
+//int analogvalue0; // Here we are declaring the integer variable analogvalue, which we will use later to store the value of the photoresistor.
+//int analogvalue1; // Here we are declaring the integer variable analogvalue, which we will use later to store the value of the photoresistor.
+//int analogvalue2; // Here we are declaring the integer variable analogvalue, which we will use later to store the value of the photoresistor.
+//int analogvalue3; // Here we are declaring the integer variable analogvalue, which we will use later to store the value of the photoresistor.
+//int analogvalue4; // Here we are declaring the integer variable analogvalue, which we will use later to store the value of the photoresistor.
+//int analogvalue5; // Here we are declaring the integer variable analogvalue, which we will use later to store the value of the photoresistor.
+//int analogvalue6; // Here we are declaring the integer variable analogvalue, which we will use later to store the value of the photoresistor.
+//int analogvalue7; // Here we are declaring the integer variable analogvalue, which we will use later to store the value of the photoresistor.
+
+unsigned long cm;
+unsigned long inches;
+
+int TRIG_PIN = D4;
+int ECHO_PIN = D5;
+int led = D7; // This is where your LED is plugged in. The other side goes to a resistor connected to GND.
+
+// Anything over 400 cm (23200 us pulse) is "out of range"
+const unsigned int MAX_DIST = 23200;
+char debugMsg [100];
+
+// Next we go into the setup function.
+void setup() {
+    sprintf(debugMsg, "Setting up");
+    Spark.publish("Level Debug", debugMsg);
+    
+    light[0] = D0; 
+    light[1] = D1; 
+    light[2] = D2; 
+    light[3] = D3; 
+    light[4] = D4; 
+    light[5] = D5; 
+    light[6] = D6; 
+    
+    pinMode(TRIG_PIN, OUTPUT);
+    digitalWrite(TRIG_PIN, LOW);
+    pinMode(ECHO_PIN, INPUT);
+    
+    // First, declare all of our pins. This lets our device know which ones will be used for outputting voltage, and which ones will read incoming voltage.
+    //pinMode(led,OUTPUT); // Our LED pin is output (lighting up the LED)
+    //for(int ii =0; ii<7; ii++) {
+    //    pinMode(light[ii],OUTPUT); // Our LED pin is output (lighting up the LED)
+    //    digitalWrite(light[ii],HIGH);
+    //}
+    
+//    pinMode(A0,INPUT);  
+//    pinMode(A1,INPUT);  
+//    pinMode(A2,INPUT);  
+//    pinMode(A3,INPUT);  
+//    pinMode(A4,INPUT);  
+//    pinMode(A5,INPUT);  
+//    pinMode(A6,INPUT);  
+//    pinMode(A7,INPUT);  
+
+    // Next, write the power of the photoresistor to be the maximum possible, so that we can use this for power.
+    //digitalWrite(power,HIGH);
+
+    // We are going to declare a Particle.variable() here so that we can access the value of the photoresistor from the cloud.
+    //Particle.variable("analogvalue0", &analogvalue0, INT);
+    //Particle.variable("analogvalue2", &analogvalue2, INT);
+ 
+    //Particle.variable("analogvalue3", &analogvalue3, INT);
+    //Particle.variable("distance_cm",   &cm, DOUBLE);
+    //Particle.variable("distance_in", &inches, DOUBLE);
+
+    // This is saying that when we ask the cloud for "analogvalue", this will reference the variable analogvalue in this app, which is an integer variable.
+
+    // We are also going to declare a Particle.function so that we can turn the LED on and off from the cloud.
+    //Particle.function("led",ledToggle);
+    Particle.function("measDist",measureDistance);
+    // This is saying that when we ask the cloud for the function "led", it will employ the function ledToggle() from this app.
+}
+
+
+// Next is the loop function...
+
+void loop() {
+
+    // check to see what the value of the photoresistor is and store it in the int variable analogvalue
+    //analogvalue0 = analogRead(pinA0);
+    //analogvalue1 = analogRead(pinA1);
+    //delay(200);
+    //analogvalue2 = analogRead(pinA2);
+    //delay(200);
+    //analogvalue3 = analogRead(pinA3);
+    //analogvalue4 = analogRead(pinA4);
+    //analogvalue5 = analogRead(pinA5);
+    //analogvalue6 = analogRead(pinA6);
+    //analogvalue7 = analogRead(pinA7);
+    //delay(200);
+}
+
+// Finally, we will write out our ledToggle function, which is referenced by the Particle.function() called "led"
+//int ledToggle(String command) {
+//    char firstchar = command[0];
+//    char pin = command[2] - '0';
+//    
+//   if (firstchar=='N') {
+//        digitalWrite(light[pin],LOW);
+//        return 1;
+//    }
+//    else if (firstchar=='F') {
+//        digitalWrite(light[pin],HIGH);
+//        return 0;
+//    }
+//   else {
+//        return -1;
+//    }
+//
+//}
+
+int measureDistance(String command) {
+  unsigned long t1;
+  unsigned long t2;
+  unsigned long pulse_width;
+  
+  // Hold the trigger pin high for at least 10 us
+  digitalWrite(TRIG_PIN, LOW);
+  delayMicroseconds(2);
+
+  digitalWrite(TRIG_PIN, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG_PIN, LOW);
+
+  // Wait for pulse on echo pin
+  //while ( digitalRead(ECHO_PIN) == 0 );
+  // Measure how long the echo pin was held high (pulse width)
+  // Note: the micros() counter will overflow after ~70 min
+  //t1 = micros();
+  //while ( digitalRead(ECHO_PIN) == 1);
+  //t2 = micros();
+  //pulse_width = t2 - t1;
+  
+  pulse_width = pulseIn(ECHO_PIN, HIGH);
+
+  // Calculate distance in centimeters and inches. The constants
+  // are found in the datasheet, and calculated from the assumed speed 
+  //of sound in air at sea level (~340 m/s).
+  cm = pulse_width / 58.0;
+  inches = pulse_width / 148.0;
+  
+  if ( pulse_width > MAX_DIST ) {
+      sprintf(debugMsg, "Measure Distance pulse greater than max distance %lu", pulse_width);
+      Spark.publish("Level Debug", debugMsg);
+      return -1;
+  } else {
+      sprintf(debugMsg, "Measure Distance: pulse_width %lu, cm %lu, inches %lu", pulse_width, cm, inches);
+      Spark.publish("Level Debug", debugMsg);
+      
+      // Wait at least 60ms before next measurement
+     delay(60);
+     return pulse_width;
+}
+}
